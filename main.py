@@ -25,6 +25,48 @@ else:
 # Ngưỡng để giảm nhận nhầm (tăng lên nếu muốn ít “đoán” hơn)
 MIN_CONF = float(os.getenv("MIN_CONF", "0.35"))
 
+# Ưu tiên model đã train riêng cho trái cây.
+DEFAULT_MODEL_CANDIDATES = [
+    os.getenv("YOLO_MODEL", "models/fruit/best.pt"),
+    "yolov8n.pt",
+]
+
+# Các seedId trái cây mà app hỗ trợ khi dùng custom-trained model.
+FRUIT_SEED_IDS = {
+    "tao",
+    "dau_tay",
+    "cam",
+    "chanh",
+    "sung",
+    "dua",
+    "chuoi",
+    "mit",
+    "na",
+    "luu",
+    "nho",
+    "dua_hau",
+    "du_du",
+    "xoai",
+    "bo",
+    "vai",
+    "chom_chom",
+    "thanh_long",
+    "kiwi",
+    "chanh_dau",
+    "dau_den",
+    "dau_xanh",
+    "phuc_bon_tu",
+    "le",
+    "dao",
+    "man",
+    "mo",
+    "anh_dao",
+    "oliu",
+    "cha_la",
+    "dua_xiem",
+    "buoi",
+}
+
 # Map COCO class -> seedId trong game
 COCO_TO_SEED: Dict[str, Optional[str]] = {
     "apple": "tao",
@@ -135,8 +177,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# YOLOv8n pretrained (COCO) – tải weights lần đầu khi server khởi động
-MODEL_NAME = os.getenv("YOLO_MODEL", "yolov8n.pt")
+
+def _pick_model_name() -> str:
+    for candidate in DEFAULT_MODEL_CANDIDATES:
+        if candidate == "yolov8n.pt" or os.path.exists(candidate):
+            return candidate
+    return "yolov8n.pt"
+
+
+# YOLO pretrained/custom-trained
+MODEL_NAME = _pick_model_name()
 yolo = YOLO(MODEL_NAME)
 
 
