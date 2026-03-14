@@ -25,10 +25,40 @@ from typing import List
 
 from ultralytics import YOLO
 
-from seed_ids import ALL_SEED_IDS
-
-FRUIT_SEED_IDS: List[str] = ALL_SEED_IDS
-
+FRUIT_SEED_IDS: List[str] = [
+    "tao",
+    "dau_tay",
+    "cam",
+    "chanh",
+    "sung",
+    "dua",
+    "chuoi",
+    "mit",
+    "na",
+    "luu",
+    "nho",
+    "dua_hau",
+    "du_du",
+    "xoai",
+    "bo",
+    "vai",
+    "chom_chom",
+    "thanh_long",
+    "kiwi",
+    "chanh_dau",
+    "dau_den",
+    "dau_xanh",
+    "phuc_bon_tu",
+    "le",
+    "dao",
+    "man",
+    "mo",
+    "anh_dao",
+    "oliu",
+    "cha_la",
+    "dua_xiem",
+    "buoi",
+]
 
 
 def build_dataset_yaml(dataset_root: Path, output_yaml: Path, names: List[str]) -> None:
