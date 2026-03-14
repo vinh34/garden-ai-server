@@ -1,5 +1,21 @@
 ## Deploy AI Server lên Render
 
+## Render quick setup (copy/paste)
+
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+
+Set these Environment Variables in Render:
+
+- `ALLOWED_ORIGINS=https://<your-frontend-domain>`
+  - Example: `https://yourname.github.io`
+- `MIN_CONF=0.35`
+- `YOLO_MODEL=models/fruit/best.pt`
+
+If you have not uploaded `models/fruit/best.pt` yet, set:
+
+- `YOLO_MODEL=yolov8n.pt`
+
 ### Tạo Web Service
 
 - **Root Directory**: `ai-server`
