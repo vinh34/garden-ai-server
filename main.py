@@ -33,9 +33,41 @@ DEFAULT_MODEL_CANDIDATES = [
     "yolov8n.pt",
 ]
 
-# Các seedId trong game mà app hỗ trợ khi dùng custom-trained model.
-FRUIT_SEED_IDS = ALL_SEED_ID_SET
-
+# Các seedId trái cây mà app hỗ trợ khi dùng custom-trained model.
+FRUIT_SEED_IDS = {
+    "tao",
+    "dau_tay",
+    "cam",
+    "chanh",
+    "sung",
+    "dua",
+    "chuoi",
+    "mit",
+    "na",
+    "luu",
+    "nho",
+    "dua_hau",
+    "du_du",
+    "xoai",
+    "bo",
+    "vai",
+    "chom_chom",
+    "thanh_long",
+    "kiwi",
+    "chanh_dau",
+    "dau_den",
+    "dau_xanh",
+    "phuc_bon_tu",
+    "le",
+    "dao",
+    "man",
+    "mo",
+    "anh_dao",
+    "oliu",
+    "cha_la",
+    "dua_xiem",
+    "buoi",
+}
 
 # Map COCO class -> seedId trong game
 COCO_TO_SEED: Dict[str, Optional[str]] = {
@@ -62,6 +94,9 @@ COCO_TO_SEED: Dict[str, Optional[str]] = {
     "blackberry": "dau_den",
     "raspberry": "phuc_bon_tu",
     "date": "cha_la",
+    "tomato": "ca_chua",
+    "broccoli": "broccoli",
+    "carrot": "ca_rot",
     # các lớp dễ gây nhiễu: không trả seed để tránh sai
     "potted plant": None,
 }
@@ -109,7 +144,6 @@ FRUIT_CLASS_ALIASES: Dict[str, str] = {
     "kiwi": "kiwi",
     "chanh_dau": "chanh_dau",
     "passion_fruit": "chanh_dau",
-    "chanh_le": "chanh_le",
     "dau_den": "dau_den",
     "blackberry": "dau_den",
     "dau_xanh": "dau_xanh",
@@ -185,11 +219,6 @@ def _resolve_seed_id(cls_name: str) -> Optional[str]:
         return COCO_TO_SEED[cls_name]
 
     normalized = _normalize_label(cls_name)
-
-    # Hỗ trợ model train riêng có class name đúng bằng seedId trái cây.
-    if normalized in FRUIT_SEED_IDS:
-        return normalized
-
     if normalized in FRUIT_CLASS_ALIASES:
         return FRUIT_CLASS_ALIASES[normalized]
 
