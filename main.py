@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from ultralytics import YOLO
 
+from seed_ids import ALL_SEED_ID_SET
+
 APP_NAME = "Vuon AI Server"
 
 # Render sẽ cấp PORT qua env
