@@ -25,7 +25,19 @@ else:
     ALLOWED_ORIGINS = [x.strip() for x in allowed.split(",") if x.strip()]
 
 # Ngưỡng để giảm nhận nhầm (tăng lên nếu muốn ít “đoán” hơn)
-MIN_CONF = float(os.getenv("MIN_CONF", "0.35"))
+MIN_CONF = float(os.getenv("MIN_CONF", "0.50"))
+# Chênh lệch confidence tối thiểu giữa top-1 và top-2 để chốt kết quả.
+MIN_TOP1_TOP2_GAP = float(os.getenv("MIN_TOP1_TOP2_GAP", "0.12"))
+
+# Ưu tiên model đã train riêng cho trái cây.
+DEFAULT_MODEL_CANDIDATES = [
+    os.getenv("YOLO_MODEL", "models/fruit/best.pt"),
+    "yolov8n.pt",
+]
+
+# Các seedId trong game mà app hỗ trợ khi dùng custom-trained model.
+FRUIT_SEED_IDS = ALL_SEED_ID_SET
+
 
 # Ưu tiên model đã train riêng cho trái cây.
 DEFAULT_MODEL_CANDIDATES = [
@@ -194,7 +206,12 @@ yolo = YOLO(MODEL_NAME)
 
 @app.get("/health")
 def health() -> Dict[str, Any]:
-    return {"ok": True, "model": MODEL_NAME, "min_conf": MIN_CONF}
+    return {
+        "ok": True,
+        "model": MODEL_NAME,
+        "min_conf": MIN_CONF,
+        "min_top1_top2_gap": MIN_TOP1_TOP2_GAP,
+    }
 
 
 def _read_image(file_bytes: bytes) -> Image.Image:
@@ -236,6 +253,7 @@ async def predict(image: UploadFile = File(...)) -> Dict[str, Any]:
     r0 = results[0]
 
     detections: List[Dict[str, Any]] = []
+    candidates: List[Dict[str, Any]] = []
     best: Optional[Dict[str, Any]] = None
 
     # boxes: xyxy + conf + cls
@@ -247,17 +265,28 @@ async def predict(image: UploadFile = File(...)) -> Dict[str, Any]:
             cls_name = str(names.get(cls_id, cls_id)).lower()
             xyxy = [float(x) for x in b.xyxy[0].tolist()]
 
-            detections.append({"class": cls_name, "confidence": conf, "bbox_xyxy": xyxy})
+            seed_id = _resolve_seed_id(cls_name)
+            detections.append(
+                {"class": cls_name, "confidence": conf, "bbox_xyxy": xyxy, "seedId": seed_id}
+            )
 
             seed_id = _resolve_seed_id(cls_name)
             if seed_id and conf >= MIN_CONF:
-                if best is None or conf > float(best["confidence"]):
-                    best = {"seedId": seed_id, "confidence": conf, "class": cls_name}
+                candidates.append({"seedId": seed_id, "confidence": conf, "class": cls_name})
+
+    candidates.sort(key=lambda x: float(x["confidence"]), reverse=True)
+    if candidates:
+        top1 = candidates[0]
+        top2 = candidates[1] if len(candidates) > 1 else None
+        is_ambiguous = top2 is not None and (float(top1["confidence"]) - float(top2["confidence"]) < MIN_TOP1_TOP2_GAP)
+        if not is_ambiguous:
+            best = top1
 
     return {
         "ok": True,
         "source": "yolo",
         "min_conf": MIN_CONF,
-        "prediction": best,  # hoặc null
+        "min_top1_top2_gap": MIN_TOP1_TOP2_GAP,
+        "prediction": best,  # null nếu mơ hồ
         "detections": sorted(detections, key=lambda x: x["confidence"], reverse=True)[:10],
     }
